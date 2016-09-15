@@ -1,0 +1,24 @@
+{
+	"ImportPath": "github.com/Bogdanp/sitemapper",
+	"GoVersion": "go1.7",
+	"GodepVersion": "v74",
+	"Deps": [
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "5916dcb167ed985a5b9e6871fbfd74848a4c170b"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "5916dcb167ed985a5b9e6871fbfd74848a4c170b"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
+			"Rev": "5916dcb167ed985a5b9e6871fbfd74848a4c170b"
+		},
+		{
+			"ImportPath": "gopkg.in/oleiade/lane.v1",
+			"Comment": "v1.0.0",
+			"Rev": "28f7c3f09254f12b51e620fa4db136ba58804762"
+		}
+	]
+}
