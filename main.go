@@ -34,13 +34,13 @@ func main() {
 
 	if cpuprofile != "" {
 		f, err := os.Create(cpuprofile)
-		assert(err, "failed to create cpuprifle file: %v", err)
+		assert(err, "failed to create cpuprofile file: %v", err)
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
 	}
 
 	root, err := url.Parse(start)
-	assert(err, "%q is not a valid URL", start)
+	assert(err, "%q is not a valid URL: %v", start, err)
 
 	var logger crawler.Logger
 	if verbose {
