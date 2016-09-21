@@ -10,8 +10,6 @@ import (
 	"time"
 
 	lane "gopkg.in/oleiade/lane.v1"
-
-	"golang.org/x/net/context"
 )
 
 // Page groups the outward-facing references of a single web page into
@@ -48,6 +46,7 @@ type Crawler struct {
 	concurrency int
 
 	logger Logger
+	client *http.Client
 }
 
 // Option is the type of configuration options for the Crawl method.
@@ -60,6 +59,9 @@ func NewCrawler(root *url.URL) *Crawler {
 		concurrency: 8,
 
 		logger: &BasicLogger{},
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+		},
 	}
 }
 
@@ -77,14 +79,20 @@ func WithLogger(logger Logger) Option {
 	}
 }
 
+// WithHTTPClient sets the HTTP client.
+func WithHTTPClient(client *http.Client) Option {
+	return func(c *Crawler) {
+		c.client = client
+	}
+}
+
 // Crawl the web page and build a Sitemap.
 func (c *Crawler) Crawl(options ...Option) Sitemap {
 	for _, option := range options {
 		option(c)
 	}
 
-	ctx := context.Background()
-	sem := make(chan int, c.concurrency)
+	sem := make(chan struct{}, c.concurrency)
 	jobs := 0
 	operations := lane.NewDeque()
 	operations.Append(opPush{nil, c.root})
@@ -119,14 +127,14 @@ loop:
 			jobs++
 			visited[target] = true
 
-			sem <- 1
+			sem <- struct{}{}
 			go func() {
 				defer func() {
 					operations.Append(opPop{})
 					<-sem
 				}()
 
-				ls, err := processURL(ctx, op.targetURL)
+				ls, err := processURL(c.client, op.targetURL)
 				if err != nil {
 					c.logger.Warn("could not process URL %q: %v", op.targetURL, err)
 					return
@@ -195,11 +203,8 @@ type opTrack struct {
 	targetURL *url.URL
 }
 
-func processURL(ctx context.Context, u *url.URL) (links []link, err error) {
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	res, err := http.Get(u.String())
+func processURL(client *http.Client, u *url.URL) (links []link, err error) {
+	res, err := client.Get(u.String())
 	if err != nil {
 		return nil, err
 	}
